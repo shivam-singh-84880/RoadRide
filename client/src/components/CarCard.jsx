@@ -2,7 +2,7 @@ import React from 'react'
 import {assets} from '../assets/assets'
 import { useNavigate } from 'react-router-dom';
 
-export const Carcard = ({car}) => {
+export const CarCard = ({car}) => {
   const currency = import.meta.env.VITE_CURRENCY;
   const navigate = useNavigate();
   return (
