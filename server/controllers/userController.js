@@ -1,10 +1,10 @@
-import User from "../models/User";
+import User from "../models/User.js";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken";
 
 const generateToken = (userId) => {
     return jwt.sign({ id: userId }, process.env.JWT_SECRET);
-}
+};
 
 export const registerUser = async (req, res) => {
     const { name, email, password} = req.body;
@@ -57,5 +57,14 @@ export const loginUser = async (req, res) => {
         });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Error logging in user", error });
+    }
+};
+
+export const getUserData = async (req, res) => {
+    try {
+        const {user} = req;
+        res.status(200).json({ success: true, user });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Error fetching user data", error });
     }
 };
