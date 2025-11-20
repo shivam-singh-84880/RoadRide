@@ -75,7 +75,7 @@ export const createBooking = async (req, res) => {
 export const getUserBookings = async (req, res) => {
     try {
         const { _id } = req.user;
-        const bookings = (await Booking.find({ user: _id }).populate("car")).sort({ createdAt: -1 });
+        const bookings = await Booking.find({ user: _id }).populate("car").sort({ createdAt: -1 });
         res.status(200).json({ success: true, bookings });
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });

@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken";
+import Car from "../models/Car.js";
 
 const generateToken = (userId) => {
     return jwt.sign({ id: userId }, process.env.JWT_SECRET);
@@ -25,14 +26,14 @@ export const registerUser = async (req, res) => {
 
         const token = generateToken(user._id).toString();
 
-        res.status(201).json({
+        res.json({
             success: true,
             message: "User registered successfully",
             token
         });
 
     } catch (error) {
-        res.status(500).json({ success:false, message: "Error registering user", error });
+        res.json({ success:false, message: "Error registering user", error });
     }
 };
 
@@ -50,21 +51,31 @@ export const loginUser = async (req, res) => {
         }
         const token = generateToken(user._id).toString();
 
-        res.status(200).json({
+        res.json({
             success: true,
             message: "User logged in successfully",
             token
         });
     } catch (error) {
-        return res.status(500).json({ success: false, message: "Error logging in user", error });
+        return res.json({ success: false, message: "Error logging in user", error });
     }
 };
 
 export const getUserData = async (req, res) => {
     try {
         const {user} = req;
-        res.status(200).json({ success: true, user });
+        res.json({ success: true, user });
     } catch (error) {
-        return res.status(500).json({ success: false, message: "Error fetching user data", error });
+        return res.json({ success: false, message: "Error fetching user data", error });
+    }
+};
+
+//Get all cars for the frontend
+export const getCars = async (req, res) => {
+    try {
+        const cars = await Car.find({isAvailable: true});
+        res.status(200).json({ success: true, cars });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
     }
 };

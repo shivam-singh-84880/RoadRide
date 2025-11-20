@@ -4,13 +4,15 @@ import Car from "../models/Car.js";
 import User from "../models/User.js";
 import fs from 'fs'
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 export const changeRoleToOwner = async (req, res) => {
     try{
         const {_id} = req.user;
         await User.findByIdAndUpdate(_id, { role: "owner" });
         res.status(200).json({ success: true, message: "User role updated to owner" });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: "not authorized" });
     }
 }
 
@@ -18,7 +20,7 @@ export const changeRoleToOwner = async (req, res) => {
 export const addCar = async (req, res) => {
     try {
         const {_id} = req.user;
-        let car = JSON.parse(req.body.carData);
+        let car = JSON.parse(req.body.car);
         const imageFile = req.file;
 
         const fileBuffer = fs.readFileSync(imageFile.path);
@@ -38,7 +40,10 @@ export const addCar = async (req, res) => {
         });
 
         const image = optimizedImageUrl;
-        await Car.create({ ...car, image, owner: _id });
+        // await Car.create({ ...car, image, owner: _id });
+        const carData = { ...car, image };
+        carData.owner = _id;
+        await Car.create(carData);
 
         res.status(201).json({ success: true, message: "Car added successfully" });
 
@@ -64,7 +69,7 @@ export const toggleCarAvailability = async (req, res) => {
         const {_id} = req.user;
         const { carId } = req.body;
 
-        const car = await Car.findById({carId});
+        const car = await Car.findById(carId);
 
         if(car.owner.toString() !== _id.toString()) {
             return res.status(403).json({ success: false, message: "Not user car" });
@@ -73,7 +78,7 @@ export const toggleCarAvailability = async (req, res) => {
         car.isAvailable = !car.isAvailable;
         await car.save();
 
-        res.status(200).json({ success: true, message: "Car availability toggled", car });
+        res.json({ success: true, message: "Car availability toggled", car });
 
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -88,20 +93,18 @@ export const deleteCar = async (req, res) => {
         const {_id} = req.user;
         const { carId } = req.body;
 
-        const car = await Car.findById({carId});
+        const car = await Car.findById(carId);
 
         if(car.owner.toString() !== _id.toString()) {
             return res.status(403).json({ success: false, message: "Not user car" });
         }
-        car.owner = null;
-        car.isAvailable = false;
 
-        await car.save();
+        await car.deleteOne();
 
-        res.status(200).json({ success: true, message: "Car remove successfully" });
+        res.json({ success: true, message: "Car remove successfully" });
 
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.json({ success: false, message: "error at catch block delete car" });
     }
 }
 
@@ -166,6 +169,6 @@ export const updateUserImage = async (req, res) => {
         res.status(200).json({ success: true, message: "User image updated successfully" });
 
     }catch(error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 }
